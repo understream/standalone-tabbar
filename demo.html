@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script language="javascript" src="understream-tabbar.js"></script>
+<script>
+var namespace = 'thenamespace';
+$tabbar = u$.tabbar( "tabbar", namespace );
+$buffer = u$.tabbar( "buffer", namespace );
+$dustbin = u$.tabbar( "dustbin", namespace );
+function onload()
+{
+    function repr( _handler )
+    {
+        return "Tabbar:#" + _handler.getTabbar().getAttribute("id");
+    }
+    $tabbar.setTabTemplate('<div class="mytabclass tab-title"></div>');
+    $tabbar.setTabActiveClass( 'active' );
+    $tabbar.init( 60 );
+    var tab_title = 'first tab';
+    var tab_data = {'id': 1}
+    $tabbar.addTab( tab_title, tab_data );
+
+    $tabbar.onActiveTabChanged = function( which )
+    {
+        var idx = which.getCurrentActiveIndex();
+        if( idx === -1 )
+        {
+            console.log('no active tab anymore');
+            return;
+        }
+        var bindData = which.getTabDataAt( idx );
+        console.log( repr(which)  + ", current active tab index: " + which.getCurrentActiveIndex() + " data: `" + JSON.stringify( bindData.data ) + "`, DOM:", bindData.DOM );
+    }
+    $tabbar.onTabsChanged = function( which )
+    {
+    }
+
+    $tabbar.onTabRemoved = function( which, removedTabData )
+    {
+        console.log(repr(which) + ", tab with data `" + JSON.stringify(removedTabData.data) + "` is gone" ); 
+    }
+
+    $tabbar.onTabAdded = function( which, newTabIndex )
+    {
+        console.log( 'a new tab at Index ' + newTabIndex + ' is added' );
+    }
+
+    $buffer.init( );
+
+
+    $dustbin.init( 40 );
+    $dustbin.onTabAdded = function( which, newTabIndex )
+    {
+        console.log( repr( which ) + ' a new tab at Index ' + newTabIndex + ' is added' );
+        which.removeTabAt( newTabIndex );
+    }
+
+    $dustbin.onTabRemoved = function( which, removedTabData )
+    {
+        console.log( repr( which ) + ' a tab with data `' + JSON.stringify( removedTabData.data )  + '` was removed' );
+    }
+
+
+
+}
+
+newtab = (function( which_tab )
+{
+    var next_id = 1;
+    return function() {
+        var text = document.getElementById("input_title").value + "." + next_id;
+        var data = {'id': next_id++};
+        which_tab.addTab( text, data );
+    }
+})( $tabbar );
+
+
+</script>
+</head>
+<body onload="onload()">
+<input id="input_title" type="text" value="tab title" placeholder="input tab title here.."/>
+<span style="width:30px;height:1px;display:inline-block"></span>
+<input onclick="newtab()" type="button" value="new tab"/>
+<div id="tabbar">
+</div>
+<div id="buffer">
+</div>
+
+<div id="dustbin">
+<div class="insert-placeholder" style="font-size:10px;color:#ee1111">DROP</div>
+</div>
+</body>
+<style>
+html, body {font-size:0px}
+#tabbar {
+    width: 800px;
+    height: 40px;
+    border-radius:5px;
+    background-color:#efefef;
+    margin-bottom:18px;
+    padding:10px;
+}
+#buffer
+{
+    width: 400px;
+    height: 40px;
+    border-radius:5px;
+    background-color:#efefef;
+    margin-bottom:18px;
+    padding:10px;
+}
+
+#dustbin {
+    width: 30px;
+    min-height: 30px;
+    border-radius: 10px;
+    background-color: #a3a3a3;
+    padding: 10px;
+}
+
+.mytabclass {
+    font-size:12px;
+    width: 90%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.active .mytabclass
+{
+    border: 1px solid black;
+}
+</style>
+</html>
